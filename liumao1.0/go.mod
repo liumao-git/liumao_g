@@ -1,4 +1,4 @@
-module  github.com/liumao-git/liumao_G
+module  github.com/liumao-git/liumao_g
 
 go 1.26.2
 
