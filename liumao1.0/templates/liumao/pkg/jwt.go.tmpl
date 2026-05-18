@@ -1,0 +1,44 @@
+package pkg
+
+import (
+	"errors"
+	"fmt"
+	"time"
+
+	"github.com/dgrijalva/jwt-go"
+	"{{.AppName}}/common/config"
+)
+
+func TokenHandler(userId int64) (string, error) {
+	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
+		"user": userId,
+		"exp":  time.Now().Add(time.Hour * time.Duration(1)).Unix(),
+		"iat":  time.Now().Unix(),
+	})
+	tokenString, err := token.SignedString([]byte(config.Cfg.Jwt.APP_KEY))
+	return tokenString, err
+}
+
+func GetToken(tokenString string) (jwt.MapClaims, error) {
+	token, err := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
+		return []byte(config.Cfg.Jwt.APP_KEY), nil
+	})
+
+	if ve, ok := err.(*jwt.ValidationError); ok {
+		if ve.Errors&jwt.ValidationErrorMalformed != 0 {
+			fmt.Println("That's not even a token")
+			return nil, errors.New("登录异常")
+		} else if ve.Errors&(jwt.ValidationErrorExpired|jwt.ValidationErrorNotValidYet) != 0 {
+			fmt.Println("Timing is everything")
+			return nil, errors.New("登录过期")
+		} else {
+			fmt.Println("Couldn't handle this token:", err)
+			return nil, errors.New("登录异常")
+		}
+	}
+
+	if claims, ok := token.Claims.(jwt.MapClaims); ok && token.Valid {
+		return claims, nil
+	}
+	return nil, errors.New("登录异常")
+}

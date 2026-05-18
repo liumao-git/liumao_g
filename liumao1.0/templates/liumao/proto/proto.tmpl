@@ -1,0 +1,70 @@
+syntax = "proto3";
+
+package {{.Module.LowerName}};
+
+option go_package = "./";
+
+message {{.Module.UpperName}}AddReq {
+{{range .Module.Fields}}
+  {{.ProtoType}} {{.ColumnName}} = {{.ProtoNum}};
+{{end}}
+}
+
+message {{.Module.UpperName}}AddResp {
+  int64 id = 1;
+}
+
+message {{.Module.UpperName}}ShowReq {
+  int64 id = 1;
+}
+
+message {{.Module.UpperName}}ShowResp {
+  int64 id = 1;
+{{range .Module.Fields}}
+  {{.ProtoType}} {{.ColumnName}} = {{add .ProtoNum 1}};
+{{end}}
+}
+
+message {{.Module.UpperName}}UptReq {
+  int64 id = 1;
+{{range .Module.Fields}}
+  {{.ProtoType}} {{.ColumnName}} = {{add .ProtoNum 1}};
+{{end}}
+}
+
+message {{.Module.UpperName}}UptResp {
+  bool success = 1;
+}
+
+message {{.Module.UpperName}}ListReq {
+  int64 page = 1;
+  int64 size = 2;
+}
+
+message {{.Module.UpperName}}ListResp {
+  repeated {{.Module.UpperName}}List list = 1;
+  int64 count = 2;
+}
+
+message {{.Module.UpperName}}List {
+  int64 id = 1;
+{{range .Module.Fields}}
+  {{.ProtoType}} {{.ColumnName}} = {{add .ProtoNum 1}};
+{{end}}
+}
+
+message {{.Module.UpperName}}DelReq {
+  int64 id = 1;
+}
+
+message {{.Module.UpperName}}DelResp {
+  bool success = 1;
+}
+
+service {{.Module.UpperName}} {
+  rpc {{.Module.UpperName}}Add({{.Module.UpperName}}AddReq) returns ({{.Module.UpperName}}AddResp);
+  rpc {{.Module.UpperName}}Show({{.Module.UpperName}}ShowReq) returns ({{.Module.UpperName}}ShowResp);
+  rpc {{.Module.UpperName}}Upt({{.Module.UpperName}}UptReq) returns ({{.Module.UpperName}}UptResp);
+  rpc {{.Module.UpperName}}List({{.Module.UpperName}}ListReq) returns ({{.Module.UpperName}}ListResp);
+  rpc {{.Module.UpperName}}Del({{.Module.UpperName}}DelReq) returns ({{.Module.UpperName}}DelResp);
+}

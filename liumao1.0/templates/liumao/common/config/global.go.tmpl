@@ -1,0 +1,20 @@
+package config
+
+import (
+	"context"
+	"github.com/olivere/elastic/v7"
+	"github.com/redis/go-redis/v9"
+	"gorm.io/gorm"
+{{range .Modules}}
+	pb{{.UpperName}} "{{$.AppName}}/proto/{{.LowerName}}"
+{{end}}
+)
+
+var DB *gorm.DB
+var Cfg Config
+var RDB *redis.Client
+var Ctx = context.Background()
+var Esc *elastic.Client
+{{range .Modules}}
+var {{.UpperName}}Client pb{{.UpperName}}.{{.UpperName}}Client
+{{end}}

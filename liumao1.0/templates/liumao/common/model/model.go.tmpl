@@ -1,0 +1,44 @@
+package model
+
+import (
+	pb{{.Module.UpperName}} "{{.AppName}}/proto/{{.Module.LowerName}}"
+	"gorm.io/gorm"
+)
+
+type {{.Module.UpperName}} struct {
+	gorm.Model
+{{range .Module.Fields}}
+	{{.GoName}} {{.GoType}}
+{{end}}
+}
+
+func (m *{{.Module.UpperName}}) {{.Module.UpperName}}Create(db *gorm.DB) error {
+	return db.Create(m).Error
+}
+
+func (m *{{.Module.UpperName}}) {{.Module.UpperName}}Show(db *gorm.DB, id int64) error {
+	return db.Where("id = ?", id).First(m).Error
+}
+
+func (m *{{.Module.UpperName}}) {{.Module.UpperName}}Upt(db *gorm.DB, req *pb{{.Module.UpperName}}.{{.Module.UpperName}}UptReq) error {
+	return db.Where("id = ?", req.Id).Updates(m).Error
+}
+
+func (m *{{.Module.UpperName}}) {{.Module.UpperName}}Del(db *gorm.DB, id int64) error {
+	return db.Where("id = ?", id).Delete(m).Error
+}
+
+func {{.Module.UpperName}}List(db *gorm.DB, req *pb{{.Module.UpperName}}.{{.Module.UpperName}}ListReq, list *[]{{.Module.UpperName}}, count *int64) error {
+	if req.Page <= 0 {
+		req.Page = 1
+	}
+	if req.Size <= 0 {
+		req.Size = 10
+	}
+	if req.Size > 50 {
+		req.Size = 50
+	}
+	offset := (req.Page - 1) * req.Size
+	tx := db.Model({{.Module.UpperName}}{}).Count(count).Offset(int(offset)).Limit(int(req.Size))
+	return tx.Find(list).Error
+}

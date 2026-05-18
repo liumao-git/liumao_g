@@ -1,0 +1,85 @@
+package server
+
+import (
+	"context"
+	"errors"
+
+	pb{{.Module.UpperName}} "{{.AppName}}/proto/{{.Module.LowerName}}"
+	"{{.AppName}}/common/config"
+	"{{.AppName}}/common/model"
+)
+
+type {{.Module.UpperName}}Service struct {
+	pb{{.Module.UpperName}}.Unimplemented{{.Module.UpperName}}Server
+}
+
+func (s *{{.Module.UpperName}}Service) {{.Module.UpperName}}Add(ctx context.Context, req *pb{{.Module.UpperName}}.{{.Module.UpperName}}AddReq) (resp *pb{{.Module.UpperName}}.{{.Module.UpperName}}AddResp, err error) {
+	m := model.{{.Module.UpperName}}{
+{{range .Module.Fields}}
+		{{.GoName}}: req.{{.GoName}},
+{{end}}
+	}
+	if err := m.{{.Module.UpperName}}Create(config.DB); err != nil {
+		return nil, errors.New("添加失败")
+	}
+	return &pb{{.Module.UpperName}}.{{.Module.UpperName}}AddResp{Id: int64(m.ID)}, nil
+}
+
+func (s *{{.Module.UpperName}}Service) {{.Module.UpperName}}Show(ctx context.Context, req *pb{{.Module.UpperName}}.{{.Module.UpperName}}ShowReq) (resp *pb{{.Module.UpperName}}.{{.Module.UpperName}}ShowResp, err error) {
+	var m model.{{.Module.UpperName}}
+	if err := m.{{.Module.UpperName}}Show(config.DB, req.Id); err != nil {
+		return nil, errors.New("查询失败")
+	}
+	return &pb{{.Module.UpperName}}.{{.Module.UpperName}}ShowResp{
+		Id: int64(m.ID),
+{{range .Module.Fields}}
+		{{.GoName}}: m.{{.GoName}},
+{{end}}
+	}, nil
+}
+
+func (s *{{.Module.UpperName}}Service) {{.Module.UpperName}}Upt(ctx context.Context, req *pb{{.Module.UpperName}}.{{.Module.UpperName}}UptReq) (resp *pb{{.Module.UpperName}}.{{.Module.UpperName}}UptResp, err error) {
+	var m model.{{.Module.UpperName}}
+	if err := m.{{.Module.UpperName}}Show(config.DB, req.Id); err != nil {
+		return nil, errors.New("记录不存在")
+	}
+	m = model.{{.Module.UpperName}}{
+{{range .Module.Fields}}
+		{{.GoName}}: req.{{.GoName}},
+{{end}}
+	}
+	if err := m.{{.Module.UpperName}}Upt(config.DB, req); err != nil {
+		return nil, errors.New("修改失败")
+	}
+	return &pb{{.Module.UpperName}}.{{.Module.UpperName}}UptResp{Success: true}, nil
+}
+
+func (s *{{.Module.UpperName}}Service) {{.Module.UpperName}}List(ctx context.Context, req *pb{{.Module.UpperName}}.{{.Module.UpperName}}ListReq) (resp *pb{{.Module.UpperName}}.{{.Module.UpperName}}ListResp, err error) {
+	var list []model.{{.Module.UpperName}}
+	var count int64
+	if err := model.{{.Module.UpperName}}List(config.DB, req, &list, &count); err != nil {
+		return nil, errors.New("列表查询失败")
+	}
+	var lists []*pb{{.Module.UpperName}}.{{.Module.UpperName}}List
+	for _, m := range list {
+		item := pb{{.Module.UpperName}}.{{.Module.UpperName}}List{
+			Id: int64(m.ID),
+{{range .Module.Fields}}
+			{{.GoName}}: m.{{.GoName}},
+{{end}}
+		}
+		lists = append(lists, &item)
+	}
+	return &pb{{.Module.UpperName}}.{{.Module.UpperName}}ListResp{
+		List:  lists,
+		Count: count,
+	}, nil
+}
+
+func (s *{{.Module.UpperName}}Service) {{.Module.UpperName}}Del(ctx context.Context, req *pb{{.Module.UpperName}}.{{.Module.UpperName}}DelReq) (resp *pb{{.Module.UpperName}}.{{.Module.UpperName}}DelResp, err error) {
+	var m model.{{.Module.UpperName}}
+	if err := m.{{.Module.UpperName}}Del(config.DB, req.Id); err != nil {
+		return nil, errors.New("删除失败")
+	}
+	return &pb{{.Module.UpperName}}.{{.Module.UpperName}}DelResp{Success: true}, nil
+}

@@ -1,0 +1,92 @@
+package api
+
+import (
+	"net/http"
+
+	"github.com/gin-gonic/gin"
+	"{{.AppName}}/{{.BffDirName}}/handler/request"
+	"{{.AppName}}/common/config"
+	pb{{.Module.UpperName}} "{{.AppName}}/proto/{{.Module.LowerName}}"
+)
+
+func {{.Module.UpperName}}Add(c *gin.Context) {
+	var form request.{{.Module.UpperName}}Add
+	if err := c.ShouldBind(&form); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+	add, err := config.{{.Module.UpperName}}Client.{{.Module.UpperName}}Add(c, &pb{{.Module.UpperName}}.{{.Module.UpperName}}AddReq{
+{{range .Module.Fields}}
+		{{.GoName}}: form.{{.GoName}},
+{{end}}
+	})
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"message": "添加失败", "code": 400, "data": nil})
+		return
+	}
+	c.JSON(http.StatusOK, gin.H{"message": "添加成功", "code": 200, "data": add})
+}
+
+func {{.Module.UpperName}}Show(c *gin.Context) {
+	var form request.{{.Module.UpperName}}Show
+	if err := c.ShouldBind(&form); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+	show, err := config.{{.Module.UpperName}}Client.{{.Module.UpperName}}Show(c, &pb{{.Module.UpperName}}.{{.Module.UpperName}}ShowReq{Id: int64(form.Id)})
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"message": "查询失败", "code": 400, "data": nil})
+		return
+	}
+	c.JSON(http.StatusOK, gin.H{"message": "查询成功", "code": 200, "data": show})
+}
+
+func {{.Module.UpperName}}Upt(c *gin.Context) {
+	var form request.{{.Module.UpperName}}Upt
+	if err := c.ShouldBind(&form); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+	upt, err := config.{{.Module.UpperName}}Client.{{.Module.UpperName}}Upt(c, &pb{{.Module.UpperName}}.{{.Module.UpperName}}UptReq{
+		Id: form.Id,
+{{range .Module.Fields}}
+		{{.GoName}}: form.{{.GoName}},
+{{end}}
+	})
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"message": "修改失败", "code": 400, "data": nil})
+		return
+	}
+	c.JSON(http.StatusOK, gin.H{"message": "修改成功", "code": 200, "data": upt})
+}
+
+func {{.Module.UpperName}}List(c *gin.Context) {
+	var form request.{{.Module.UpperName}}List
+	if err := c.ShouldBind(&form); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+	list, err := config.{{.Module.UpperName}}Client.{{.Module.UpperName}}List(c, &pb{{.Module.UpperName}}.{{.Module.UpperName}}ListReq{
+		Page: form.Page,
+		Size: form.Size,
+	})
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"message": "查询失败", "code": 400, "data": nil})
+		return
+	}
+	c.JSON(http.StatusOK, gin.H{"message": "查询成功", "code": 200, "data": list})
+}
+
+func {{.Module.UpperName}}Del(c *gin.Context) {
+	var form request.{{.Module.UpperName}}Del
+	if err := c.ShouldBind(&form); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+	del, err := config.{{.Module.UpperName}}Client.{{.Module.UpperName}}Del(c, &pb{{.Module.UpperName}}.{{.Module.UpperName}}DelReq{Id: int64(form.Id)})
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"message": "删除失败", "code": 400, "data": nil})
+		return
+	}
+	c.JSON(http.StatusOK, gin.H{"message": "删除成功", "code": 200, "data": del})
+}

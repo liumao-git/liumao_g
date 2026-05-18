@@ -1,0 +1,102 @@
+package init
+
+import (
+	"fmt"
+	"{{$.AppName}}/common/config"
+	"{{$.AppName}}/common/model"
+	"github.com/olivere/elastic/v7"
+	"github.com/redis/go-redis/v9"
+	"github.com/spf13/viper"
+	"google.golang.org/grpc"
+	"gorm.io/driver/mysql"
+	"gorm.io/gorm"
+{{range .Modules}}
+	pb{{.UpperName}} "{{$.AppName}}/proto/{{.LowerName}}"
+{{end}}
+)
+
+func init() {
+	ViperInit()
+	MysqlInit()
+	RedisInit()
+	EsInit()
+{{range .Modules}}
+	{{.UpperName}}ClientInit()
+{{end}}
+}
+
+func ViperInit() {
+	viper.SetConfigFile("../../../common/config/config.yaml")
+	err := viper.ReadInConfig()
+	if err != nil {
+		panic("配置文件读取失败")
+	}
+	err = viper.Unmarshal(&config.Cfg)
+	if err != nil {
+		panic("配置文件解析失败")
+	} else {
+		fmt.Println("配置文件解析成功", config.Cfg)
+	}
+}
+
+func MysqlInit() {
+	var err error
+	data := config.Cfg.Mysql
+	dsn := fmt.Sprintf("%s:%s@tcp(%s:%d)/%s?charset=utf8mb4&parseTime=True&loc=Local",
+		data.User,
+		data.Password,
+		data.Host,
+		data.Port,
+		data.DBname)
+	config.DB, err = gorm.Open(mysql.Open(dsn), &gorm.Config{})
+	if err != nil {
+		panic("数据库连接失败")
+	} else {
+		fmt.Println("数据库连接成功")
+	}
+	err = config.DB.AutoMigrate(
+{{range .Modules}}
+		&model.{{.UpperName}}{},
+{{end}}
+	)
+	if err != nil {
+		panic("数据库迁移失败")
+	} else {
+		fmt.Println("数据库迁移成功")
+	}
+}
+
+func RedisInit() {
+	data := config.Cfg.Redis
+	config.RDB = redis.NewClient(&redis.Options{
+		Addr:     data.Addr,
+		Password: data.Password,
+		DB:       data.DB,
+	})
+	err := config.RDB.Set(config.Ctx, "key", "value", 0).Err()
+	if err != nil {
+		panic(err)
+	} else {
+		fmt.Println("redis读取成功")
+	}
+}
+
+func EsInit() {
+	var err error
+	config.Esc, err = elastic.NewClient(elastic.SetURL(config.Cfg.Es.Url), elastic.SetSniff(false))
+	if err != nil {
+		fmt.Println("es连接失败")
+		return
+	}
+	fmt.Println("es连接成功")
+}
+{{range .Modules}}
+
+func {{.UpperName}}ClientInit() {
+	conn, err := grpc.Dial(config.Cfg.Services.{{.UpperName}}Addr, grpc.WithInsecure())
+	if err != nil {
+		fmt.Printf("连接{{.UpperName}}服务异常：%s\n", err)
+	}
+	config.{{.UpperName}}Client = pb{{.UpperName}}.New{{.UpperName}}Client(conn)
+}
+{{end}}

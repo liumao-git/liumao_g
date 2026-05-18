@@ -1,0 +1,39 @@
+package pkg
+
+import (
+	"context"
+	"mime/multipart"
+
+	"{{.AppName}}/common/config"
+	"github.com/qiniu/go-sdk/v7/storagev2/credentials"
+	"github.com/qiniu/go-sdk/v7/storagev2/http_client"
+	"github.com/qiniu/go-sdk/v7/storagev2/uploader"
+)
+
+func Upload(file *multipart.FileHeader, filename string) (string, error) {
+	data := config.Cfg.Qiniuyun
+	accessKey := data.Ak
+	secretKey := data.Sk
+	mac := credentials.NewCredentials(accessKey, secretKey)
+
+	bucket := data.Bucket
+	key := filename
+
+	uploadManager := uploader.NewUploadManager(&uploader.UploadManagerOptions{
+		Options: http_client.Options{
+			Credentials: mac,
+		},
+	})
+	open, _ := file.Open()
+
+	err := uploadManager.UploadReader(context.Background(), open, &uploader.ObjectOptions{
+		BucketName: bucket,
+		ObjectName: &key,
+		CustomVars: map[string]string{
+			"name": "github logo",
+		},
+		FileName: key,
+	}, nil)
+
+	return data.Url + "/" + key + "?imageView2/0", err
+}

@@ -1,0 +1,42 @@
+package config
+
+type Config struct {
+	Mysql struct {
+		Host     string
+		Port     int
+		User     string
+		Password string
+		DBname   string
+	}
+	Redis struct {
+		Addr     string
+		Password string
+		DB       int
+	}
+	Es struct {
+		Url string
+	}
+	Sendsms struct {
+		Account  string
+		Password string
+	}
+	Qiniuyun struct {
+		Ak     string
+		Sk     string
+		Bucket string
+		Url    string
+	}
+	Alipay struct {
+		Appid string
+		Key   string
+		Url   string
+	}
+	Jwt struct {
+		APP_KEY string
+	}
+	Services struct {
+{{range .Modules}}
+		{{.UpperName}}Addr string
+{{end}}
+	}
+}

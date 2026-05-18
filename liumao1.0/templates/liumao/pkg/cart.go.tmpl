@@ -1,0 +1,40 @@
+package pkg
+
+import (
+	"fmt"
+	"{{.AppName}}/common/config"
+)
+
+func CartAdd(UserId int64, DrugId int64, drugMap map[string]interface{}) error {
+	key := fmt.Sprintf("cart:%d:%d", UserId, DrugId)
+	return config.RDB.HMSet(config.Ctx, key, drugMap).Err()
+}
+func CartExist(UserId int64, DrugId int64) bool {
+	key := fmt.Sprintf("cart:%d:%d", UserId, DrugId)
+	return config.RDB.Exists(config.Ctx, key).Val() > 0
+}
+func CartUpdate(UserId int64, DrugId int64, quantity int64) error {
+	key := fmt.Sprintf("cart:%d:%d", UserId, DrugId)
+	return config.RDB.HIncrBy(config.Ctx, key, "quantity", quantity).Err()
+}
+func CartList(UserId int64) []string {
+	key := fmt.Sprintf("cart:%d:*", UserId)
+	return config.RDB.Keys(config.Ctx, key).Val()
+}
+func CartDelete(UserId int64, DrugId int64) error {
+	key := fmt.Sprintf("cart:%d:%d", UserId, DrugId)
+	return config.RDB.Del(config.Ctx, key).Err()
+}
+func CartClear(UserId int64) error {
+	key := fmt.Sprintf("cart:%d:*", UserId)
+	keys := config.RDB.Keys(config.Ctx, key).Val()
+	if len(keys) > 0 {
+		for _, k := range keys {
+			err := config.RDB.Del(config.Ctx, k).Err()
+			if err != nil {
+				return err
+			}
+		}
+	}
+	return nil
+}

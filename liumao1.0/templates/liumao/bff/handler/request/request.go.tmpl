@@ -1,0 +1,23 @@
+package request
+
+type {{.Module.UpperName}}Add struct {
+{{range .Module.Fields}}
+	{{.GoName}} {{.GoType}} `form:"{{.ColumnName}}" json:"{{.ColumnName}}"`
+{{end}}
+}
+type {{.Module.UpperName}}Show struct {
+	Id int64 `form:"id" json:"id" xml:"id" binding:"required"`
+}
+type {{.Module.UpperName}}Upt struct {
+	Id int64 `form:"id" json:"id" xml:"id" binding:"required"`
+{{range .Module.Fields}}
+	{{.GoName}} {{.GoType}} `form:"{{.ColumnName}}" json:"{{.ColumnName}}"`
+{{end}}
+}
+type {{.Module.UpperName}}List struct {
+	Page int64 `form:"page" json:"page" xml:"page" binding:"required"`
+	Size int64 `form:"size" json:"size" xml:"size" binding:"required"`
+}
+type {{.Module.UpperName}}Del struct {
+	Id int64 `form:"id" json:"id" xml:"id" binding:"required"`
+}

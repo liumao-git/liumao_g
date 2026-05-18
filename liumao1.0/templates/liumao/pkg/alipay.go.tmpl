@@ -1,0 +1,37 @@
+package pkg
+
+import (
+	"fmt"
+	"strconv"
+
+	"github.com/smartwalle/alipay/v3"
+	"{{.AppName}}/common/config"
+)
+
+func Pay(orderSn string, total float64) string {
+	data := config.Cfg.Alipay
+	appId := data.Appid
+	privateKey := data.Key
+	client, err := alipay.New(appId, privateKey, false)
+	if err != nil {
+		fmt.Println(err)
+		return ""
+	}
+
+	var p = alipay.TradeWapPay{}
+	p.NotifyURL = data.Url
+	p.ReturnURL = "http://xxx"
+	p.Subject = "在线支付"
+	p.OutTradeNo = orderSn
+	p.TotalAmount = strconv.FormatFloat(total, 'f', 2, 64)
+	p.ProductCode = "QUICK_WAP_WAY"
+
+	url, err := client.TradeWapPay(p)
+	if err != nil {
+		fmt.Println(err)
+		return ""
+	}
+
+	var payURL = url.String()
+	return payURL
+}

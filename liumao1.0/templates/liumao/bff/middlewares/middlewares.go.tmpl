@@ -1,0 +1,30 @@
+package middlewares
+
+import (
+	"net/http"
+
+	"github.com/gin-gonic/gin"
+	"{{.AppName}}/pkg"
+)
+
+func MiddleWares() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		token := c.GetHeader("token")
+
+		if token == "" {
+			c.JSON(http.StatusBadRequest, gin.H{"code": 400, "data": nil, "message": "未登录"})
+			c.Abort()
+			return
+		}
+
+		getToken, err := pkg.GetToken(token)
+		if err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"code": 400, "data": nil, "message": err.Error()})
+			c.Abort()
+			return
+		}
+
+		c.Set("userId", int64(getToken["userId"].(float64)))
+		c.Set("userType", int64(getToken["userType"].(float64)))
+	}
+}

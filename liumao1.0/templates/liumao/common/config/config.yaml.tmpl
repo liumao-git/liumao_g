@@ -1,0 +1,37 @@
+Mysql:
+  host: "{{.DBHost}}"
+  port: {{.DBPort}}
+  user: "{{.DBUser}}"
+  password: "{{.DBPassword}}"
+  dbname: "{{.DBName}}"
+
+Redis:
+  addr: ""
+  password: ""
+  db: 0
+
+Es:
+  url: ""
+
+Sendsms:
+  account: ""
+  password: ""
+
+Qiniuyun:
+  ak: ""
+  sk: ""
+  bucket: ""
+  url: ""
+
+Alipay:
+  appid: ""
+  key: ""
+  url: ""
+
+Jwt:
+  APP_KEY: ""
+
+Services:
+{{range .Modules}}
+  {{.UpperName}}Addr: "127.0.0.1:{{.Port}}"
+{{end}}

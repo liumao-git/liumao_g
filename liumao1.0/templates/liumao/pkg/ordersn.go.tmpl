@@ -1,0 +1,13 @@
+package pkg
+
+import (
+	"fmt"
+	"math/rand"
+	"time"
+)
+
+func OrderSn() string {
+	timeStr := time.Now().Format("20060102")
+	randNum := rand.Intn(100000000) + 90000000
+	return fmt.Sprintf("ZY%s%d", timeStr, randNum)
+}

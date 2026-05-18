@@ -1,0 +1,57 @@
+package api
+
+import (
+	"fmt"
+	"math/rand"
+	"net/http"
+	"path/filepath"
+	"time"
+
+	"github.com/gin-gonic/gin"
+	"{{.AppName}}/bffh5/handler/request"
+	"{{.AppName}}/common/config"
+	"{{.AppName}}/pkg"
+)
+
+func Upload(c *gin.Context) {
+	var form request.Upload
+	if err := c.ShouldBind(&form); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"data": nil, "code": 400, "message": "参数缺失"})
+		return
+	}
+	s, err := c.MultipartForm()
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"data": nil, "code": 400, "message": "文件上传失败"})
+		return
+	}
+	file := s.File["file"]
+	if len(file) > 10 {
+		c.JSON(http.StatusBadRequest, gin.H{"data": nil, "code": 400, "message": "您当前文件只允许上传十个"})
+		return
+	}
+	for _, file := range file {
+		ext := filepath.Ext(file.Filename)
+		if file.Size >= 1024*1024*3 {
+			c.JSON(http.StatusBadRequest, gin.H{"data": nil, "code": 400, "message": "上传文件中包含了大于3M的"})
+			return
+		}
+		if ext != ".png" && ext != ".jpg" && ext != ".jpeg" {
+			c.JSON(http.StatusBadRequest, gin.H{"data": nil, "code": 400, "message": "当前上传文件中包含了除png/jpg/jpeg其他类型的文件"})
+			return
+		}
+	}
+
+	var fileNames []string
+	for _, file := range file {
+		ext := filepath.Ext(file.Filename)
+		filename := fmt.Sprintf("%s%d%s", time.Now().Format("20060102150405"), rand.Intn(100000), ext)
+		upload, err := pkg.Upload(file, filename)
+		if err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"data": nil, "code": 400, "message": err.Error()})
+			return
+		}
+		fileNames = append(fileNames, upload)
+	}
+
+	c.JSON(200, gin.H{"data": fileNames, "code": 200, "message": "文件上传成功"})
+}

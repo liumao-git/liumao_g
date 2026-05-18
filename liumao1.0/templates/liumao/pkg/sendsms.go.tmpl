@@ -1,0 +1,46 @@
+package pkg
+
+import (
+	"encoding/json"
+	"fmt"
+	"io/ioutil"
+	"net/http"
+	"net/url"
+	"strings"
+
+	"{{.AppName}}/common/config"
+)
+
+const strUrl = "https://api.ihuyi.com/sms/Submit.json"
+
+func SendSms(mobile string, code string) (T, error) {
+	data := config.Cfg.Sendsms
+	v := url.Values{}
+	v.Set("account", data.Account)
+	v.Set("password", data.Password)
+	v.Set("mobile", mobile)
+	v.Set("content", "您的验证码是："+code+"。请不要把验证码泄露给其他人。")
+
+	body := strings.NewReader(v.Encode())
+	client := &http.Client{}
+	req, _ := http.NewRequest("POST", strUrl, body)
+	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+
+	resp, err := client.Do(req)
+	if err != nil {
+		fmt.Println(err)
+	}
+
+	defer resp.Body.Close()
+	res, _ := ioutil.ReadAll(resp.Body)
+	fmt.Println(string(res))
+	var t T
+	json.Unmarshal(res, &t)
+	return t, err
+}
+
+type T struct {
+	Code  int    `json:"code"`
+	Msg   string `json:"msg"`
+	Smsid string `json:"smsid"`
+}

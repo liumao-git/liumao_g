@@ -1,0 +1,24 @@
+package main
+
+import (
+	"fmt"
+	"net"
+
+	"google.golang.org/grpc"
+	"{{.AppName}}/common/config"
+	_ "{{.AppName}}/common/init"
+	pb{{.Module.UpperName}} "{{.AppName}}/proto/{{.Module.LowerName}}"
+	"{{.AppName}}/{{.Module.LowerName}}-server/server"
+)
+
+func main() {
+	addr := config.Cfg.Services.{{.Module.UpperName}}Addr
+	listener, err := net.Listen("tcp", addr)
+	if err != nil {
+		fmt.Printf("监听异常:%s\n", err)
+	}
+	fmt.Printf("监听端口：%s\n", addr)
+	s := grpc.NewServer()
+	pb{{.Module.UpperName}}.Register{{.Module.UpperName}}Server(s, &server.{{.Module.UpperName}}Service{})
+	s.Serve(listener)
+}

@@ -1,0 +1,22 @@
+package router
+
+import (
+	"github.com/gin-gonic/gin"
+	"{{.AppName}}/{{.BffDirName}}/basic/middlewares"
+	"{{.AppName}}/{{.BffDirName}}/handler/api"
+)
+
+func Router(r *gin.Engine) {
+	r.POST("/upload", api.Upload)
+	group := r.Group("/v1")
+	group.Use(middlewares.MiddleWares())
+	{
+{{range .Modules}}
+		group.POST("/{{.LowerName}}/add", api.{{.UpperName}}Add)
+		group.GET("/{{.LowerName}}/show", api.{{.UpperName}}Show)
+		group.POST("/{{.LowerName}}/upt", api.{{.UpperName}}Upt)
+		group.GET("/{{.LowerName}}/list", api.{{.UpperName}}List)
+		group.GET("/{{.LowerName}}/del", api.{{.UpperName}}Del)
+{{end}}
+	}
+}
